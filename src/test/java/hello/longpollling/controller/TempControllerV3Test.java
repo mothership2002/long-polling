@@ -1,20 +1,18 @@
 package hello.longpollling.controller;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @SpringBootTest
@@ -32,11 +30,14 @@ class TempControllerV3Test {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("message", "hello");
 
-        MvcResult mvcResult = mockMvc.perform(get("/api/result")
-                                                .queryParams(params))
-                                    .andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
-        System.out.println(response.getContentAsString());
+        MvcResult mvcResult =
+                mockMvc.perform(get("/api/result")
+                                .queryParams(params))
+                        .andReturn();
 
+        this.mockMvc
+                .perform(asyncDispatch(mvcResult))
+                .andDo(print())
+                .andExpect(status().isOk());
     }
 }
